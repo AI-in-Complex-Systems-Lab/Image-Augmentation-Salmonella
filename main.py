@@ -2,6 +2,9 @@
 
 import os
 
+print("Starting...")
+
+
 CONFIG = {
     'original_images': [
         ('data/original_images/image1.png', 9),
