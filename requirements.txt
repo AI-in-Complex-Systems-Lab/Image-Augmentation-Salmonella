@@ -3,3 +3,4 @@ tensorflow
 pandas
 numpy
 matplotlib
+scipy
