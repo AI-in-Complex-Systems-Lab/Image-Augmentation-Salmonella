@@ -10,7 +10,7 @@ env/
 # Data directories
 data/sliced_images/
 data/transformed_images/
-sample_data/
+sample_data/transformed_images_samples/
 
 # Generated files
 data/labels.csv
