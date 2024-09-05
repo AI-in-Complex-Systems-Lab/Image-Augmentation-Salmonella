@@ -1,4 +1,5 @@
 import os
+import shutil
 import random
 import pandas as pd
 from PIL import Image, UnidentifiedImageError
@@ -142,6 +143,32 @@ def create_zip(input_dir, zip_filename):
     print(f'Zip file created: {zip_filename}')
 
 def main():
+        print(f'Zip file created: {zip_filename}')
+
+def main():
+    if os.path.exists(CONFIG['sliced_images_dir']):
+        for root, dirs, files in os.walk(CONFIG['sliced_images_dir'], topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                shutil.rmtree(os.path.join(root, name))
+        print(f"Cleared contents of directory: {CONFIG['sliced_images_dir']}")
+    else:
+        print(f"Directory does not exist: {CONFIG['sliced_images_dir']}")
+
+    # Directly clear the contents of the transformed_images_dir
+    if os.path.exists(CONFIG['transformed_images_dir']):
+        for root, dirs, files in os.walk(CONFIG['transformed_images_dir'], topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                shutil.rmtree(os.path.join(root, name))
+        print(f"Cleared contents of directory: {CONFIG['transformed_images_dir']}")
+    else:
+        print(f"Directory does not exist: {CONFIG['transformed_images_dir']}")
+
+    # Slice images
+    
     # Slice images
     all_section_paths = []
     for image_path, num_sections in CONFIG['original_images']:
