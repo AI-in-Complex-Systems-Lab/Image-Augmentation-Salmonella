@@ -72,29 +72,64 @@ def label_images(output_dir, label_file):
     df.to_csv(label_file, index=False)
     print(f'Labels saved to {label_file}')
 
+import numpy as np
+import cv2
+
 def custom_color_augment(img):
-    """Custom color augmentation focusing on red-yellow spectrum"""
+    """Custom color augmentation for colorimetric assays (yellowish or reddish)"""
+    # Ensure input image is float32 for calculations
+    img = img.astype(np.float32) / 255.0
+
     # Convert to HSV color space
     hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     h, s, v = cv2.split(hsv)
     
-    # Create a mask for red-yellow hues (0-60 in OpenCV's HSV)
-    mask = ((h >= 0) & (h <= 30)).astype(np.float32)
+    # Define the hue ranges for yellowish and reddish colors
+    yellow_hue_range = (40 / 360.0, 70 / 360.0)  # Approximately 40-70 degrees in HSV
+    red_hue_range = (0 / 360.0, 20 / 360.0)  # Approximately 0-20 degrees in HSV
     
-    # Randomly adjust saturation and value for red-yellow hues
-    s = s * (1 + np.random.uniform(-0.2, 0.2) * mask)
-    v = v * (1 + np.random.uniform(-0.2, 0.2) * mask)
+    # Determine the dominant color range of the image
+    yellow_mask = ((h >= yellow_hue_range[0]) & (h <= yellow_hue_range[1])).astype(np.float32)
+    red_mask = ((h >= red_hue_range[0]) & (h <= red_hue_range[1])).astype(np.float32)
     
-    # Clip values to valid range
-    s = np.clip(s, 0, 255)
-    v = np.clip(v, 0, 255)
+    if np.sum(yellow_mask) > np.sum(red_mask):
+        # Image is predominantly yellowish
+        lower_hue, upper_hue = yellow_hue_range
+        mask = yellow_mask
+    else:
+        # Image is predominantly reddish
+        lower_hue, upper_hue = red_hue_range
+        mask = red_mask
     
-    # Merge channels and convert back to RGB
-    hsv = cv2.merge([h, s, v])
-    img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+    # Randomly adjust hue within the chosen color range
+    h_shift = np.random.uniform(-10, 10) / 360.0  # Normalize to 0-1 range
+    h = np.mod(h + h_shift * mask, 1.0)
     
-    return img
-
+    # Ensure hue stays within the original dominant color range
+    h = np.where(mask, np.clip(h, lower_hue, upper_hue), h)
+    
+    # Randomly adjust saturation
+    s = s * (1 + np.random.uniform(-0.3, 0.3) * mask)
+    
+    # Randomly adjust value (brightness)
+    v = v * (1 + np.random.uniform(-0.3, 0.3) * mask)
+    
+    # Add random brightness variation to the entire image
+    overall_brightness = np.random.uniform(0.8, 1.2)
+    v = v * overall_brightness
+    
+    # Clip the values to the valid range [0, 1]
+    h = np.clip(h, 0, 1)
+    s = np.clip(s, 0, 1)
+    v = np.clip(v, 0, 1)
+    
+    # Merge the channels back into an HSV image
+    hsv = cv2.merge((h, s, v))
+    
+    # Convert back to RGB color space
+    img_augmented = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+    
+    return (img_augmented * 255.0).astype(np.uint8)
 def augment_images(input_dir, output_dir):
     """
     Augment the sliced images and save the augmented versions.
@@ -109,9 +144,7 @@ def augment_images(input_dir, output_dir):
         zoom_range=0.2,
         horizontal_flip=True,
         vertical_flip=True,
-        brightness_range=[0.8,1.2],
         fill_mode='nearest',
-        rescale=1./255,
         preprocessing_function=custom_color_augment
     )
 
