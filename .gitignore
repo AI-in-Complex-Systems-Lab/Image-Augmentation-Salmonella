@@ -11,6 +11,8 @@ env/
 data/sliced_images/
 data/transformed_images/
 sample_data/
+output_grids/
+
 
 # Generated files
 data/labels.csv

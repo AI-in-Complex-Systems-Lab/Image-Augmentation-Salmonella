@@ -2,10 +2,12 @@ import os
 import shutil
 import random
 import pandas as pd
+import numpy as np
 from PIL import Image, UnidentifiedImageError
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 import zipfile
 from config import CONFIG
+import cv2
 
 def get_project_root():
     """Return the project root directory."""
@@ -70,6 +72,29 @@ def label_images(output_dir, label_file):
     df.to_csv(label_file, index=False)
     print(f'Labels saved to {label_file}')
 
+def custom_color_augment(img):
+    """Custom color augmentation focusing on red-yellow spectrum"""
+    # Convert to HSV color space
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    h, s, v = cv2.split(hsv)
+    
+    # Create a mask for red-yellow hues (0-60 in OpenCV's HSV)
+    mask = ((h >= 0) & (h <= 30)).astype(np.float32)
+    
+    # Randomly adjust saturation and value for red-yellow hues
+    s = s * (1 + np.random.uniform(-0.2, 0.2) * mask)
+    v = v * (1 + np.random.uniform(-0.2, 0.2) * mask)
+    
+    # Clip values to valid range
+    s = np.clip(s, 0, 255)
+    v = np.clip(v, 0, 255)
+    
+    # Merge channels and convert back to RGB
+    hsv = cv2.merge([h, s, v])
+    img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+    
+    return img
+
 def augment_images(input_dir, output_dir):
     """
     Augment the sliced images and save the augmented versions.
@@ -86,7 +111,8 @@ def augment_images(input_dir, output_dir):
         vertical_flip=True,
         brightness_range=[0.8,1.2],
         fill_mode='nearest',
-        rescale=1./255
+        rescale=1./255,
+        preprocessing_function=custom_color_augment
     )
 
     total_images = sum(1 for f in os.listdir(input_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg')))
