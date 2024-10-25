@@ -1,6 +1,0 @@
-pillow
-tensorflow
-pandas
-numpy
-matplotlib
-scipy

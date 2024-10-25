@@ -12,6 +12,8 @@ data/sliced_images/
 data/transformed_images/
 sample_data/
 output_grids/
+original_patches/
+augmented_images/
 
 
 # Generated files
