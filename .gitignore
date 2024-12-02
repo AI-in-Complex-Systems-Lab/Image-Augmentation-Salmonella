@@ -4,15 +4,13 @@ __pycache__/
 *$py.class
 
 # Virtual environment
-venv/
-env/
+.venv/bin
 
 # Data directories
 data/sliced_images/
 data/transformed_images/
 sample_data/
 output_grids/
-
 
 
 # Generated files
