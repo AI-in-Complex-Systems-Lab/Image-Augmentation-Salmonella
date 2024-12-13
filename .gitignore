@@ -5,9 +5,9 @@ __pycache__/
 
 # Virtual environment
 .venv/
-augmented_output/
-classification/
-split_testpatch/
+\augmented_output
+\classification
+\split_testpatch
 Project_Narrative1_MK_c.docx/
 # Data directories
 data/sliced_images/
